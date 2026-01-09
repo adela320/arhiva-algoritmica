@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+//Robotul se poate misca N, S, V, E
 const int di[] = {0,0,1,-1};
 const int dj[] = {1,-1,0,0};
 
@@ -130,7 +131,6 @@ void pereche(Matrice *mat, Teleport *t) {
                         t[j].j = t[val].j;
                         t[auxi].i = i; //coord1 -> coord2
                         t[auxj].j = j;
-                        printf("%d %d, %d %d\n", t[auxi].i, t[auxj].j, t[i].i, t[j].j);
                     }
                 }
             }

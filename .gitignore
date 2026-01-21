@@ -1,0 +1,30 @@
+# ===== IDE (CLion / IntelliJ) =====
+.idea/
+*.iml
+
+# ===== CMake =====
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# ===== Ninja =====
+.ninja_deps
+.ninja_log
+build.ninja
+
+# ===== CLion internal =====
+.cache/
+cache-v2/
+codemodel-v2/
+toolchains-v1/
+cmakeFiles-v1/
+
+# ===== JSON generate =====
+*.json
+
+# ===== General =====
+*.log
+*.tmp
+*.swp

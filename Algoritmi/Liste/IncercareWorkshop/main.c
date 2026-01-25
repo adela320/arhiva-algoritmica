@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 typedef struct IDParticipant {
     struct IDParticipant *next;
     int id;
@@ -54,6 +55,67 @@ void adauga_id(ZiWorkShop *zi, int id) {
         p->next = malloc(sizeof(IDParticipant));
         p->next->id = id;
         p->next->next = NULL;
+    }
+}
+
+int sterge_id(IDParticipant **head, int id) {
+    IDParticipant *p = *head, *ant = NULL;
+
+    while (p && p->id != id) {
+        ant = p;
+        p = p->next;
+    }
+    if (!p) return 0;
+
+    if (!ant)
+        *head = p->next;
+    else
+        ant->next = p->next;
+
+    free(p);
+    return 1;
+}
+
+int sterge_zi(ZiWorkShop **head, int zi, int id) {
+    ZiWorkShop *p = *head, *ant = NULL;
+
+    while (p != NULL && p->zi != zi) {
+        ant = p;
+        p = p->next;
+    }
+    if (!p) return 0;
+
+    if (!sterge_id(&p->ID, id)) //daca id ul nu exista, nu stergem nimic
+        return 0;
+
+    if (p->ID == NULL) { //daca ID ul corespunde fix primului element
+        if (!ant)
+            *head = p->next;
+        else
+            ant->next = p->next;
+
+        free(p);
+    }
+    return 1;
+}
+void stergere(CodWorkshop **head, char *cod, int zi, int id) {
+    CodWorkshop *p = *head, *ant = NULL;
+
+    while (p && strcmp(p->cod, cod) != 0) {
+        ant = p;
+        p = p->next;
+    }
+    if (!p) return;
+
+    sterge_zi(&p->z, zi, id);
+
+    if (p->z == NULL) {
+        if (!ant)
+            *head = p->next;
+        else
+            ant->next = p->next;
+
+        free(p);
     }
 }
 
@@ -188,6 +250,9 @@ int main(int argc, const char * argv[]) {
             strcpy(cod_final, cod+1);
             if (cod[0] == '+') {
                 adaugare(&head, cod_final, zi, id);
+            }
+            else {
+                stergere(&head, cod_final, zi, id);
             }
         }
     }

@@ -18,6 +18,14 @@ typedef struct CodWorkshop{
     ZiWorkShop *z;
 } CodWorkshop;
 
+void eliberare_cod(CodWorkshop *head);
+void eliberare_zi(ZiWorkShop *z);
+void eliberare_id(IDParticipant *i);
+
+/*
+ Avem nevoie de gaseste_zi si exista_id pentru a verifica ca valoarea acestora nu e deja adaugata
+ */
+
 
 ZiWorkShop* gaseste_zi(ZiWorkShop *z, int zi) {
     while (z != NULL) {
@@ -35,6 +43,8 @@ int exista_id(IDParticipant *idp, int id) {
     }
     return 0;
 }
+
+
 void adauga_id(ZiWorkShop *zi, int id) {
     if (!exista_id(zi->ID, id)) {
         IDParticipant *p = zi->ID;
@@ -50,20 +60,19 @@ void adauga_id(ZiWorkShop *zi, int id) {
 void adaugare(CodWorkshop **head, char cod[50], int zi, int id) {
     CodWorkshop *p = *head;
     CodWorkshop *last = NULL;
+    ZiWorkShop *noua_zi = NULL;
 
     // căutăm codul
     while (p != NULL) {
-        if (strcmp(p->cod, cod) == 0) {
+        if (strcmp(p->cod, cod) == 0) { //daca codul exista, cautam ziua
 
-            // cod găsit → căutăm ziua
             ZiWorkShop *z = gaseste_zi(p->z, zi);
 
-            if (z != NULL) {
-                // zi existentă → adăugăm ID
+            if (z != NULL) { //daca ziua exista, adaugam id
                 adauga_id(z, id);
             } else {
-                // zi nouă → o creăm
-                ZiWorkShop *noua_zi = malloc(sizeof(ZiWorkShop));
+                // ziua nu exista -> o cream
+                noua_zi = malloc(sizeof(ZiWorkShop));
                 noua_zi->zi = zi;
                 noua_zi->next = NULL;
 
@@ -71,11 +80,12 @@ void adaugare(CodWorkshop **head, char cod[50], int zi, int id) {
                 noua_zi->ID->id = id;
                 noua_zi->ID->next = NULL;
 
-                // o legăm la final
+                // o legam la final
                 z = p->z;
                 while (z->next != NULL)
                     z = z->next;
                 z->next = noua_zi;
+                z->next->ID = noua_zi->ID;
             }
             return;
         }
@@ -83,22 +93,22 @@ void adaugare(CodWorkshop **head, char cod[50], int zi, int id) {
         p = p->next;
     }
 
-    // codul NU există → creăm tot
+    // daca nu exista cod-ul
     CodWorkshop *nou = malloc(sizeof(CodWorkshop));
-    strcpy(nou->cod, cod);
+    strcpy(nou->cod, cod); // cod
     nou->next = NULL;
 
-    nou->z = malloc(sizeof(ZiWorkShop));
+    nou->z = malloc(sizeof(ZiWorkShop)); //zi
     nou->z->zi = zi;
     nou->z->next = NULL;
 
-    nou->z->ID = malloc(sizeof(IDParticipant));
+    nou->z->ID = malloc(sizeof(IDParticipant)); //id
     nou->z->ID->id = id;
     nou->z->ID->next = NULL;
 
-    if (*head == NULL)
+    if (*head == NULL) //daca nu avem niciun cod, cel nou cread e primul
         *head = nou;
-    else
+    else //daca avem coduri in lista, atunci cel nou creat va fi trecut la final
         last->next = nou;
 }
 
@@ -118,7 +128,6 @@ void printZi(ZiWorkShop *z) {
 }
 
 
-
 void printCod(CodWorkshop *c) {
     int cnt = 0;
     while (c != NULL) {
@@ -130,10 +139,28 @@ void printCod(CodWorkshop *c) {
     }
 }
 
-void eliberare(CodWorkshop *head) {
+void eliberare_id(IDParticipant *i) {
+    while (i != NULL) {
+        IDParticipant *aux = i;
+        i = i -> next;
+        free(aux);
+    }
+}
+
+void eliberare_zi(ZiWorkShop *z) {
+    while (z != NULL) {
+        ZiWorkShop *aux = z;
+        z = z->next;
+        eliberare_id(aux->ID);
+        free(aux);
+    }
+}
+
+void eliberare_cod(CodWorkshop *head) {
     while (head != NULL) {
         CodWorkshop *p = head;
         head = head->next;
+        eliberare_zi(p->z);
         free(p);
     }
 }
@@ -165,6 +192,6 @@ int main(int argc, const char * argv[]) {
         }
     }
     printCod(head);
-    eliberare(head);
+    eliberare_cod(head);
     return 0;
 }

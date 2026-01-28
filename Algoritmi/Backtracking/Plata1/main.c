@@ -45,6 +45,8 @@ int solutie(Plata *p, int k, int sum, int S) {
     return ((sum + p->x[k] * p->v[k]) == S); //daca am ajuns la suma dorita -> solutie
 }
 
+//daca am vrea sa folosim cel puțin o bancnotă de fiecare tip, incepem de la i = 1;
+
 void Bk(Plata *p, int k, int n, int S, int sum, FILE *out) {
     if (k < n) {
         for (int i = 0; i <= p->c[k]; i ++) { //putem sa folosim o bacnota de un nr de ori (inclusiv 0)

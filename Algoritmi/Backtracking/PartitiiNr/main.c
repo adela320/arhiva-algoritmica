@@ -6,7 +6,15 @@
  Se dă un număr natural n.
  Determinaţi, în ordine lexicografică, toate modalităţile de a-l scrie pe n ca sumă de numere naturale.
 
- n <= 50
+ Obs : n <= 50
+ */
+
+/*
+   De ce se poate rezolva cu backtracking ?
+       - in tablou solutie retinem o multime de val
+       - dimeniunea tabloului solutie este fixa (n <= 50)
+        (n poate fi reprezentat ca suma 1 + 1 + .. + 1, de n ori, deci ocupand maxim n pozitii in x[])
+       - valorile x[i] apartin unei multimi finite, de la 1 ... n
  */
 
 /*
@@ -48,8 +56,6 @@ void Bk(int x[], int k, int s, int n, FILE *out) {
         }
     }
 }
-
-
 
 
 int main(int argc, char **argv) {

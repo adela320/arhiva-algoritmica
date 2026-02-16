@@ -1,117 +1,130 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define val_minim INT_MAX
 
-typedef struct Matrice {
-    int **a;
-    int n, m;
-}Matrice;
+const int di[] = {1, -1, 0, 0};
+const int dj[] = {0, 0, 1, -1};
 
-typedef struct Solutie {
-    int nr_sol;
-    int minim_bloc;
-    int x, y, margine;
-}Sol;
-
-const int di[] = {-1, 0, 1, 0};
-const int dj[] = {0, 1, 0, -1};
-
-void citire_matrice(Matrice *mat, FILE *f) {
-    for (int i = 0; i < mat->n; i ++) {
-        for (int j = 0; j < mat->m; j ++) {
-            fscanf(f, "%d", &mat->a[i][j]);
-        }
+void eliberare(int **a, int **b, int m) {
+    for (int i = 0; i < m; i ++) {
+        free(a[i]);
+        free(b[i]);
     }
+    free(a);
+    free(b);
 }
 
-void eliberare_matrice(Matrice *mat) {
-    for (int i = 0; i < mat->n; i++) {
-        free(mat->a[i]);
-    }
-    free(mat->a);
-}
 
-int valid(Sol *sol, Matrice *mat, int i, int j) {
-    if (i < 0 || i >= mat->n || j < 0 || j >= mat->m) {
+int valid(int **a, int **b, int m, int n, int i, int j) {
+    if (i < 0 || i >= m || j < 0 || j >= n) {
         return 0;
     }
-    if (mat->a[i][j] != 1) {
+
+    if (a[i][j] != 1 || b[i][j] != 0) {
         return 0;
     }
+
     return 1;
 }
 
-void Bk(Matrice *mat, int i, int j, int *cnt, Sol *s) {
-    if (!valid(s, mat, i, j)) {
+void verif_margine(int i, int j, int m, int n, int *margine) {
+    if (i == 0 || j == 0 || i == m - 1 || j == n - 1) {
+        *margine = 1;
+    }
+}
+
+void Bk(int **a, int **b, int m, int n, int i, int j, int *cnt, int *margine) {
+
+    if (!valid(a, b, m, n, i, j)) {
         return;
     }
-    if (i == 0 || j == 0 || i == mat->n - 1 || j == mat->m - 1) {
-        s->margine = 1;
-    }
+
+    b[i][j] = 1; //marcam celulele vizitate
+
+    verif_margine(i, j, m, n, margine); //daca e margine, aux[1] = 1;
 
     (*cnt)++;
-    mat->a[i][j] = 2;
 
-    for (int k = 0; k < 4; k++) {
-         Bk(mat, i + di[k], j + dj[k], cnt, s);
+    for (int k = 0; k < 4; k ++) {
+        Bk(a, b, m, n, i + di[k], j + dj[k],  cnt, margine);
     }
-    mat->a[i][j] = 1;
+
+  //  b[i][j] = 0; //revenim
 
 }
 
+void afisare(int **a, int m, int n) {
+    for (int i = 0; i < m; i ++) {
+        for (int j = 0; j < n; j ++) {
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        fprintf(stderr, "argument error");
+    if (argc != 3) {
+        fprintf(stderr, "Nr incorect de argumente");
         exit(1);
     }
+
     FILE *f = fopen(argv[1], "r");
     if (f == NULL) {
-        perror("open error");
+        perror("Fisier intrare");
         exit(1);
     }
-    Matrice *mat = (Matrice *) malloc(sizeof(Matrice));
-    fscanf(f, "%d %d", &mat->n, &mat->m);
-    mat->a = malloc( sizeof(int *) * mat->n);
-    if (mat->a == NULL) {
-        perror("malloc error");
+
+    FILE *out = fopen(argv[2], "w");
+    if (out == NULL) {
+        perror("Fisier iesire");
         exit(1);
     }
-    for (int i = 0; i < mat->n; i++) {
-        mat->a[i] = (int *) malloc(sizeof(int) * mat->m);
-        if (mat->a[i] == NULL) {
-            perror("malloc error");
-            exit(1);
+    int n, m;
+    fscanf(f, "%d %d", &m, &n);
+    int **a = malloc(m * sizeof(int *));
+    int **b = calloc(m, sizeof(int *));
+    if (a == NULL || b == NULL) {
+        fprintf(stderr,"Eroare alocare memorie:");
+        exit(1);
+    }
+    for (int i = 0; i < m; i++) {
+        a[i] = malloc(n * sizeof(int));
+        b[i] = calloc(n, sizeof(int)); // si aici trebuie verificare pentru malloc/calloc
+    }
+
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j ++) {
+            fscanf(f, "%d", &a[i][j]);
         }
     }
 
-    citire_matrice(mat, f);
-    Sol s;
-    s.nr_sol = 0;
-    s.minim_bloc = val_minim;
+    int min_curba= 100000; //aria maxima a unei curbe inchise
+    int cnt_curbe = 0;
 
-    for (int i = 0; i < mat->n; i ++) {  //dupa modul in care parcurgem matricea, mereu vom incepe din coltul cel mai stanga sus
-        for (int j = 0; j < mat->m; j ++) {
-            if (mat->a[i][j] == 1) {
-                s.margine = 0;
+    int is, js; //coordonatele celui mai din stanga pixel sus al curbei minime
+    is = js = -1;
+    for (int i = 0; i < m; i ++) { //mereu incep parcurgerea din stanga sus
+        for (int j = 0; j < n; j ++) {
+            if (a[i][j] == 1) {
                 int cnt = 0;
-                Bk(mat, i, j, &cnt, &s);
-                if (!s.margine && cnt > 3) {
-                        s.nr_sol++;
-                    if (cnt < s.minim_bloc) {
-                        s.minim_bloc = cnt;
-                        s.x = i;
-                        s.y = j;
+                int margine = 0;
+
+                Bk(a, b, m, n, i, j, &cnt, &margine);
+
+                if (cnt > 3 && margine == 0)  //curba inchisa valida
+                {
+                    cnt_curbe++;
+                    if (cnt < min_curba) {
+                        min_curba = cnt;
+                        is = i;
+                        js = j;
                     }
                 }
             }
         }
     }
-
-    printf("Nr solutii: %d\nCurba minima: %d\nCoord cele mai stg sus x:%d, y%d\n", s.nr_sol, s.minim_bloc, s.x, s.y);
-
+    fprintf(out, "Curba minima: %d\nNr de curbe valide: %d\nCoordonate (is, js): (%d, %d)", min_curba, cnt_curbe, is, js);
+    eliberare(a, b, m);
     fclose(f);
-    eliberare_matrice(mat);
-    free(mat);
+    fclose(out);
     return 0;
 }

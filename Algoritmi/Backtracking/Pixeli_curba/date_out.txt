@@ -1,0 +1,3 @@
+Curba minima: 4
+Nr de curbe valide: 1
+Coordonate (is, js): (3, 4)

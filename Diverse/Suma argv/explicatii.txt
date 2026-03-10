@@ -1,0 +1,7 @@
+Folosind terminalul din Linux:
+
+Creezi un program intr-un folder, fie program2.c
+Programul va aduna suma a 3 numere transmise ca argumente prin linie de comanda.
+
+De exemplu: ./prog 2 31 4
+Se va afisa la iesirea standard 37
